@@ -16,15 +16,16 @@ struct GameView: View {
                               y: geometry.size.height - 15)
                 
                 ForEach(GaneVM.obstacles) { obstacle in
-                    Rectangle()
-                        .fill(Color.red)
-                        .frame(width: 30, height: 30)
-                        .position(
-                            x: geometry.size.width / 2 + GaneVM.xOffset(for: obstacle.line, width: geometry.size.width),
-                            y: obstacle.yPosition - 15
-                        )
+                    if !GaneVM.gameOver {
+                        Rectangle()
+                            .fill(Color.red)
+                            .frame(width: 30, height: 30)
+                            .position(
+                                x: geometry.size.width / 2 + GaneVM.xOffset(for: obstacle.line, width: geometry.size.width),
+                                y: obstacle.yPosition - 15
+                            )
+                    }
                 }
-                
                 
                 if GaneVM.gameOver {
                     Text("Game Over")

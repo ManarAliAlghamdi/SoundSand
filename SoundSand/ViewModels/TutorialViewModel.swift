@@ -1,10 +1,3 @@
-//
-//  TutorialViewModel.swift
-//  SoundSand
-//
-//  Created by Manar Alghmadi on 16/12/2024.
-//
-
 import Foundation
 import SwiftUI
 import AVFoundation
