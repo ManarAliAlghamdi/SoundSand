@@ -23,7 +23,9 @@ class GameViewModel: ObservableObject {
             spawnTime: 10,
             soundDelay: 5,
             duration: 3,
-            soundIndex: 0
+            soundIndex: 0,
+            collisionSound: "mid.mp3",
+            collisionSoundDuration: 5
         ),
         ObstacleModel(
             line: 2,
@@ -31,7 +33,9 @@ class GameViewModel: ObservableObject {
             spawnTime: 20,
             soundDelay: 5,
             duration: 8,
-            soundIndex: 1
+            soundIndex: 1,
+            collisionSound: "hit2.mp3",
+            collisionSoundDuration: 1.5
         )
     ]
     
@@ -55,7 +59,7 @@ class GameViewModel: ObservableObject {
         spawnTimer?.invalidate()
         gameTimer = nil
         spawnTimer = nil
-        soundManager.stopCurrentSound()
+        gameOver = true
     }
     
     private func setupGameTimer() {
@@ -134,20 +138,36 @@ class GameViewModel: ObservableObject {
     func checkCollisions() {
         for obstacle in obstacles {
             if !obstacle.isMoving && obstacle.line == player.currentLine {
-                gameOver = true
-                stopGame()
+                playCollisionAndStopGame(obstacle: obstacle)
                 return
             }
             
             if obstacle.isMoving &&
                obstacle.line == player.currentLine &&
                abs(obstacle.yPosition - (UIScreen.main.bounds.height - 15)) < 15 {
-                gameOver = true
-                stopGame()
+                playCollisionAndStopGame(obstacle: obstacle)
                 return
             }
         }
     }
+
+
+    private func playCollisionAndStopGame(obstacle: ObstacleModel) {
+        guard !gameOver else { return }
+
+        stopGame()
+
+        print("Playing collision sound: \(obstacle.collisionSound) for duration: \(obstacle.collisionSoundDuration)")
+        soundManager.playCollisionSound(named: obstacle.collisionSound, duration: obstacle.collisionSoundDuration)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + obstacle.collisionSoundDuration) {
+            self.gameOver = true
+            print("Game fully stopped after collision sound duration: \(obstacle.collisionSoundDuration) seconds")
+            self.soundManager.stopCurrentSound()
+        }
+    }
+
+
     
     
     // MARK: - Player Movement

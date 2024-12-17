@@ -30,6 +30,8 @@ struct ObstacleModel: Identifiable {
     let soundDelay: TimeInterval
     let duration: TimeInterval
     let soundIndex: Int
+    var collisionSound: String
+    var collisionSoundDuration: TimeInterval
     var played: Bool = false
     var isMoving: Bool = false
 }
