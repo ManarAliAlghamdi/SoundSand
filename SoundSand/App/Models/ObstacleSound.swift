@@ -11,11 +11,9 @@ import Foundation
 class ObstacleSound {
     var obstacleSoundName: String
     var laneNo: Int
-    var soundStatus: Bool
     
     init(obstacleSoundName: String, laneNo: Int, soundStatus: Bool) {
         self.obstacleSoundName = obstacleSoundName
         self.laneNo = laneNo
-        self.soundStatus = soundStatus
     }
 }

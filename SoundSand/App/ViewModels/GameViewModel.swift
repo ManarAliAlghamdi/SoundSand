@@ -21,7 +21,7 @@ class GameViewModel: ObservableObject {
         ObstacleModel(
             line: 1,
             yPosition: UIScreen.main.bounds.height - 100,
-            spawnTime: 10,
+            appearenceTime: 10,
             soundDelay: 5,
             duration: 3,
             soundIndex: 0,
@@ -31,7 +31,7 @@ class GameViewModel: ObservableObject {
         ObstacleModel(
             line: 2,
             yPosition: UIScreen.main.bounds.height - 100,
-            spawnTime: 20,
+            appearenceTime: 20,
             soundDelay: 5,
             duration: 8,
             soundIndex: 1,
@@ -41,15 +41,6 @@ class GameViewModel: ObservableObject {
     ]
     
     init() {
-<<<<<<< HEAD:SoundSand/ViewModels/GameViewModel.swift
-            self.gameDuration = 60
-            self.gameTimeRemaining = 60
-            self.currentSpeed = 8
-            self.obstacleSpawnData 
-            startGame()
-        }
-
-=======
         self.gameDuration = 100
         self.gameTimeRemaining = 100
         self.currentSpeed = 8
@@ -58,7 +49,6 @@ class GameViewModel: ObservableObject {
     
     // MARK: - Game Lifecycle
     
->>>>>>> main:SoundSand/App/ViewModels/GameViewModel.swift
     func startGame() {
         setupGameTimer()
         setupSpawnTimer()
@@ -100,7 +90,7 @@ class GameViewModel: ObservableObject {
         let elapsedTime = gameDuration - gameTimeRemaining
         for index in obstacleSpawnData.indices {
             var obstacle = obstacleSpawnData[index]
-            if !obstacle.played && abs((obstacle.spawnTime - obstacle.soundDelay) - elapsedTime) < 0.016 {
+            if !obstacle.played && abs((obstacle.appearenceTime - obstacle.soundDelay) - elapsedTime) < 0.016 {
                 playSoundBeforeObstacle(obstacle: obstacle)
                 obstacleSpawnData[index].played = true
             }
@@ -123,7 +113,7 @@ class GameViewModel: ObservableObject {
             
             var newObstacle = obstacle
             newObstacle.yPosition = UIScreen.main.bounds.height - 100
-            newObstacle.spawnTime = creationTime
+            newObstacle.appearenceTime = creationTime
             self.obstacles.append(newObstacle)
         }
     }
@@ -133,7 +123,7 @@ class GameViewModel: ObservableObject {
         let currentTime = gameDuration - gameTimeRemaining
 
         obstacles.removeAll { obstacle in
-            let obstacleAge = currentTime - obstacle.spawnTime
+            let obstacleAge = currentTime - obstacle.appearenceTime
             return obstacleAge >= obstacle.duration
         }
 
@@ -198,9 +188,9 @@ class GameViewModel: ObservableObject {
     private func playSoundForActiveObstacle() {
         let remainingTime = gameDuration - gameTimeRemaining
         if let activeObstacle = obstacleSpawnData.first(where: { obstacle in
-            obstacle.spawnTime - obstacle.soundDelay <= remainingTime && obstacle.spawnTime >= remainingTime
+            obstacle.appearenceTime - obstacle.soundDelay <= remainingTime && obstacle.appearenceTime >= remainingTime
         }) {
-            let remainingDuration = max(0, activeObstacle.spawnTime - remainingTime)
+            let remainingDuration = max(0, activeObstacle.appearenceTime - remainingTime)
             soundManager.playPositionalSound(
                 forLine: activeObstacle.line,
                 playerLine: player.currentLine,
