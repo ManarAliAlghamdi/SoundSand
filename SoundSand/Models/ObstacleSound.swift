@@ -9,7 +9,13 @@ import Foundation
 
 // Represents the sounds associated with an obstacle in the game.
 class ObstacleSound {
-    var soundName: String = ""
-    var laneNo: Int = 0
-    var soundStatus: Bool = false
+    var obstacleSoundName: String
+    var laneNo: Int
+    var soundStatus: Bool
+    
+    init(obstacleSoundName: String, laneNo: Int, soundStatus: Bool) {
+        self.obstacleSoundName = obstacleSoundName
+        self.laneNo = laneNo
+        self.soundStatus = soundStatus
+    }
 }

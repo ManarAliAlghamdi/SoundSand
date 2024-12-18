@@ -34,7 +34,7 @@ class GameViewModel: ObservableObject {
             self.gameDuration = 60
             self.gameTimeRemaining = 60
             self.currentSpeed = 8
-            self.obstacleSpawnData
+            self.obstacleSpawnData 
             startGame()
         }
 
