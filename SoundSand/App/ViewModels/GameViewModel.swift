@@ -21,8 +21,8 @@ class GameViewModel: ObservableObject {
         ObstacleModel(
             line: 1,
             yPosition: UIScreen.main.bounds.height - 100,
-            appearenceTime: 10,
-            soundDelay: 5,
+            appearenceTime: 5,
+            soundDelay: 2,
             duration: 3,
             soundIndex: 0,
             collisionSound: "mid.mp3",
@@ -31,9 +31,9 @@ class GameViewModel: ObservableObject {
         ObstacleModel(
             line: 2,
             yPosition: UIScreen.main.bounds.height - 100,
-            appearenceTime: 20,
+            appearenceTime: 10,
             soundDelay: 5,
-            duration: 8,
+            duration: 5,
             soundIndex: 1,
             collisionSound: "hit2.mp3",
             collisionSoundDuration: 1.5
@@ -41,8 +41,8 @@ class GameViewModel: ObservableObject {
     ]
     
     init() {
-        self.gameDuration = 100
-        self.gameTimeRemaining = 100
+        self.gameDuration = 50
+        self.gameTimeRemaining = 50
         self.currentSpeed = 8
         startGame()
     }
@@ -61,6 +61,7 @@ class GameViewModel: ObservableObject {
         gameTimer = nil
         spawnTimer = nil
         gameOver = true
+        self.soundManager.stopAllSounds()
     }
     
     private func setupGameTimer() {
@@ -77,7 +78,6 @@ class GameViewModel: ObservableObject {
     
     
     // MARK: - Obstacles Manamgment
-    
     private func setupSpawnTimer() {
         spawnTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] _ in
             guard let self = self else { return }
@@ -91,32 +91,36 @@ class GameViewModel: ObservableObject {
         for index in obstacleSpawnData.indices {
             var obstacle = obstacleSpawnData[index]
             if !obstacle.played && abs((obstacle.appearenceTime - obstacle.soundDelay) - elapsedTime) < 0.016 {
-                playSoundBeforeObstacle(obstacle: obstacle)
+                if let newObstacle = soundManager.playSoundBeforeObstacle(obstacle: obstacle, player: player , gameDuration: self.gameDuration, gameTimeRemaining: self.gameTimeRemaining){
+                    
+                    self.obstacles.append(newObstacle)
+                }
+                //playSoundBeforeObstacle(obstacle: obstacle)
                 obstacleSpawnData[index].played = true
             }
         }
     }
     
-    private func playSoundBeforeObstacle(obstacle: ObstacleModel) {
-        let remainingDuration = max(0, obstacle.soundDelay)
-        
-        soundManager.playPositionalSound(
-            forLine: obstacle.line,
-            playerLine: player.currentLine,
-            soundIndex: obstacle.soundIndex,
-            duration: remainingDuration
-        )
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + obstacle.soundDelay) { [weak self] in
-            guard let self = self else { return }
-            let creationTime = self.gameDuration - self.gameTimeRemaining
-            
-            var newObstacle = obstacle
-            newObstacle.yPosition = UIScreen.main.bounds.height - 100
-            newObstacle.appearenceTime = creationTime
-            self.obstacles.append(newObstacle)
-        }
-    }
+//    private func playSoundBeforeObstacle(obstacle: ObstacleModel) {
+//        let remainingDuration = max(0, obstacle.soundDelay)
+//        
+//        soundManager.playPositionalSound(
+//            forLine: obstacle.line,
+//            playerLine: player.currentLine,
+//            soundIndex: obstacle.soundIndex,
+//            duration: remainingDuration
+//        )
+//        
+//        DispatchQueue.main.asyncAfter(deadline: .now() + obstacle.soundDelay) { [weak self] in
+//            guard let self = self else { return }
+//            let creationTime = self.gameDuration - self.gameTimeRemaining
+//            
+//            var newObstacle = obstacle
+//            newObstacle.yPosition = UIScreen.main.bounds.height - 100
+//            newObstacle.appearenceTime = creationTime
+//            self.obstacles.append(newObstacle)
+//        }
+//    }
     
     func updateGame() {
         guard !gameOver else { return }
@@ -159,12 +163,16 @@ class GameViewModel: ObservableObject {
         stopGame()
 
         print("Playing collision sound: \(obstacle.collisionSound) for duration: \(obstacle.collisionSoundDuration)")
-        soundManager.playCollisionSound(named: obstacle.collisionSound, duration: obstacle.collisionSoundDuration)
+        soundManager.playSound(named: obstacle.collisionSound, player: &soundManager.collisionAudioPlayer, stopTimers: &soundManager.stopTimers)
+        
 
         DispatchQueue.main.asyncAfter(deadline: .now() + obstacle.collisionSoundDuration) {
             self.gameOver = true
             print("Game fully stopped after collision sound duration: \(obstacle.collisionSoundDuration) seconds")
-            self.soundManager.stopCurrentSound()
+            self.soundManager.stopAllSounds()
+//            self.soundManager.stopSound(for: &self.soundManager.backgroundAudioPlayer )
+//            self.soundManager.stopSound(for: &self.soundManager.obstaclePlayer )
+//            self.soundManager.stopSound(for: &self.soundManager.dialogPlayer )
         }
     }
 

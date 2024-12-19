@@ -3,14 +3,15 @@ import SwiftUI
 import AVFoundation
 
 class TutorialViewModel :ObservableObject{
+    private let soundManager = SoundManager()
     init() {
         print("FUCK")
         self.gameTimeRemaining = 10
         self.gameDuration = 10
         self.currentLane = 1
-        //            self.currentLevel = 0
         
-        playBackgroundSound(backgroundSound)
+        soundManager.playSound(named: "backgroundSound.wav", player: &soundManager.backgroundAudioPlayer, soundInLoop: true, stopTimers: &soundManager.stopTimers)
+        
         setupGameTimer()
         
     }
@@ -26,39 +27,26 @@ class TutorialViewModel :ObservableObject{
     @Published var  tempTimer :TimeInterval = 0
     
     @Published var  currentLane: Int
-    //        var currentLevel: Int
     
-    
-    @Published var  stopTimers: [String: Timer] = [:]
-    @Published var  dialogPlayer: AVAudioPlayer?
-    @Published var  obstaclePlayer: AVAudioPlayer?
-    @Published var  backgroundAudioPlayer: AVAudioPlayer?
-    
-    @Published var  backgroundSound: String = "backgroundSound"
+
     
     let tutorialObstacles: [Obstacles] = [
         Obstacles(levelNo: 0, obstacleLane: 0, obstacleTimer: 0, obstcaleApperance: 4, obstacleSound: [
-            ObstacleSound(obstacleSoundName: "rightLane", laneNo: 0, soundStatus: true),
-            ObstacleSound(obstacleSoundName: "dogBarking", laneNo: 1, soundStatus: false),
-            ObstacleSound(obstacleSoundName: "leftLane", laneNo: 2, soundStatus: false)
+            ObstacleSound(obstacleSoundName: "rightLane.wav", laneNo: 0, soundStatus: true),
+            ObstacleSound(obstacleSoundName: "dogBarking.wav", laneNo: 1, soundStatus: false),
+            ObstacleSound(obstacleSoundName: "leftLane.wav", laneNo: 2, soundStatus: false)
         ]),
         Obstacles(levelNo: 1, obstacleLane: 2, obstacleTimer: 0, obstcaleApperance: 6, obstacleSound: [
-            ObstacleSound(obstacleSoundName: "dogBarking", laneNo: 0, soundStatus: true),
-            ObstacleSound(obstacleSoundName: "dogBarking", laneNo: 1, soundStatus: false),
-            ObstacleSound(obstacleSoundName: "dogBarking", laneNo: 2, soundStatus: false)
+            ObstacleSound(obstacleSoundName: "dogBarking.wav", laneNo: 0, soundStatus: true),
+            ObstacleSound(obstacleSoundName: "dogBarking.wav", laneNo: 1, soundStatus: false),
+            ObstacleSound(obstacleSoundName: "dogBarking.wav", laneNo: 2, soundStatus: false)
         ])
-        //            ,
-        //            Obstacles(levelNo: 2, obstacleLane: 2, obstacleTimer: 3, obstcaleApperance: 30, obstacleSound: [
-        //                ObstacleSound(obstacleSoundName: "rightLane", laneNo: 0, soundStatus: true),
-        //                ObstacleSound(obstacleSoundName: "middleLane", laneNo: 1, soundStatus: false),
-        //                ObstacleSound(obstacleSoundName: "leftLane", laneNo: 2, soundStatus: false)
-        //            ]),
     ]
     
     let tutrioalDialog: [DialogModel] = [
-        DialogModel(dialogSoundName: "tutLeft", dialogApperance: 0),
-        DialogModel(dialogSoundName: "tutRight", dialogApperance: 4),
-        DialogModel(dialogSoundName: "tutLeft", dialogApperance: 6),
+        DialogModel(dialogSoundName: "tutLeft.wav", dialogApperance: 0),
+        DialogModel(dialogSoundName: "tutRight.wav", dialogApperance: 4),
+        DialogModel(dialogSoundName: "tutLeft.wav", dialogApperance: 6),
     ]
     
     
@@ -72,7 +60,7 @@ class TutorialViewModel :ObservableObject{
                 currentLane -= 1
                 if showLeftArrow {
                     hideArrows("left")
-                    stopSound(for: &obstaclePlayer)
+                    soundManager.stopSound(for: &soundManager.obstaclePlayer)
                     resumeGameTimer()
                 }
             }
@@ -81,55 +69,13 @@ class TutorialViewModel :ObservableObject{
                 currentLane += 1
                 if showRightArrow {
                     hideArrows("right")
-                    stopSound(for: &obstaclePlayer)
+                    soundManager.stopSound(for: &soundManager.obstaclePlayer)
                     resumeGameTimer()
                 }
             }
         }
     }
     
-    
-    
-    
-    func playBackgroundSound(_ soundName: String) {
-        if let path = Bundle.main.path(forResource: soundName, ofType: "wav") {
-            let url = URL(fileURLWithPath: path)
-            do {
-                backgroundAudioPlayer = try AVAudioPlayer(contentsOf: url)
-                backgroundAudioPlayer?.numberOfLoops = -1
-                backgroundAudioPlayer?.play()
-            } catch {
-                print("Failed to play background sound")
-            }
-        }
-    }
-    
-    
-    
-    func playSound(named soundName: String, player: inout AVAudioPlayer?, duration: TimeInterval? = nil,_ soundInLoop: Bool = false) {
-        if let path = Bundle.main.path(forResource: soundName, ofType: "wav") {
-            let url = URL(fileURLWithPath: path)
-            do {
-                let audioPlayer = try AVAudioPlayer(contentsOf: url)
-                player = audioPlayer
-                audioPlayer.play()
-                if let duration = duration {
-                    let playerKey = "\(Unmanaged.passUnretained(audioPlayer).toOpaque())"
-                    stopTimers[playerKey]?.invalidate()
-                    stopTimers[playerKey] = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak audioPlayer] _ in
-                        audioPlayer?.stop()
-                    }
-                }
-                if soundInLoop {
-                    audioPlayer.numberOfLoops = -1
-                }
-            } catch {
-                print("Failed to play sound: \(soundName), Error: \(error.localizedDescription)")
-            }
-        } else {
-            print("Sound file not found: \(soundName).wav")
-        }
-    }
     
     
     func setupGameTimer() {
@@ -150,21 +96,16 @@ class TutorialViewModel :ObservableObject{
     
     func stopGame() {
         gameTimer?.invalidate()
-        stopSound(for: &backgroundAudioPlayer)
+        soundManager.stopSound(for: &soundManager.backgroundAudioPlayer)
     }
     
     func checkDialogAppearance() {
         let elapsedTime = gameDuration - gameTimeRemaining
         for dialog in tutrioalDialog {
             if Int(dialog.dialogApperance) == Int(elapsedTime) {
-                playSound(named: dialog.dialogSoundName, player: &dialogPlayer)
+                soundManager.playSound(named: dialog.dialogSoundName, player: &soundManager.dialogPlayer, stopTimers: &soundManager.stopTimers)
             }
         }
-    }
-    
-    func stopSound(for player: inout AVAudioPlayer?) {
-        player?.stop()
-        player = nil
     }
     
     
@@ -181,7 +122,7 @@ class TutorialViewModel :ObservableObject{
                     pauseGameTimer()
                 }
                 if let sound = obstacle.obstacleSound.first(where: { $0.laneNo == currentLane }) {
-                    playSound(named: sound.obstacleSoundName, player: &obstaclePlayer, true)
+                    soundManager.playSound(named: sound.obstacleSoundName, player: &soundManager.obstaclePlayer, stopTimers: &soundManager.stopTimers)
                 }
             }
         }
@@ -194,6 +135,7 @@ class TutorialViewModel :ObservableObject{
     func resumeGameTimer() {
         setupGameTimer()
     }
+    
     
     func hideArrows(_ leftOrRight: String) {
         DispatchQueue.main.async {
